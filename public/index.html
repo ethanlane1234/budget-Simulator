@@ -14,77 +14,92 @@
       // Show the clicked one
       document.getElementById(sectionId).classList.remove("hidden");
     }
+
     function addRow(id) {
-        const target = document.getElementById(id);
+      const target = document.getElementById(id);
 
-        // Create a container for the row
-        const row = document.createElement("div");
-        row.className = "flex items-center space-x-2";
+      // Create a container for the row
+      const row = document.createElement("div");
+      row.className = "flex items-center space-x-2";
 
-        // Create the Label for the new dropdown
-        const label = document.createElement("span");
-        label.className = "w-32 font-medium text-gray-700";
-        label.innerText = "Select type";
+      // Create the Label for the new dropdown
+      const label = document.createElement("span");
+      label.className = "w-32 font-medium text-gray-700";
+      label.innerText = "Select type";
 
-        // clone hidden dropdowns
-        let dropdown;
-        if (id === "income-rows") {
+      // clone hidden dropdowns
+      let dropdown;
+      if (id === "income-rows") {
         dropdown = document.getElementById("income-select").cloneNode(true);
-        } else {
+      } else {
         dropdown = document.getElementById("expense-select").cloneNode(true);
-        }
-        dropdown.removeAttribute("id"); // gets ride of id from element since the orginal its cloned from still exists
-        dropdown.className = "flex-1 bg-blue-600 text-white px-2 py-2 rounded";
+      }
+      dropdown.removeAttribute("id"); // remove duplicate id
+      dropdown.className = "flex-1 bg-blue-600 text-white px-2 py-2 rounded";
 
-        // eventlistener
-        dropdown.addEventListener("change", () => {
-        label.innerText = dropdown.value ? dropdown.value : "Select type"; // change value to downdown
-        });
+      // eventlistener
+      dropdown.addEventListener("change", () => {
+        label.innerText = dropdown.value ? dropdown.value : "Select type";
+      });
 
-        const input = document.createElement("input");
-        input.type = "number";
-        input.placeholder = "Amount";
-        input.className = "flex-1 border rounded px-3 py-2";
+      const input = document.createElement("input");
+      input.type = "number";
+      input.placeholder = "Amount";
+      input.className = "flex-1 border rounded px-3 py-2";
 
-        row.appendChild(label);
-        row.appendChild(dropdown);
-        row.appendChild(input);
-        target.appendChild(row);
+      row.appendChild(label);
+      row.appendChild(dropdown);
+      row.appendChild(input);
+      target.appendChild(row);
     }
 
-  function saveAllData() {
-    let data = { income: [], expenses: [] };
+    function saveAllData() {
+      let data = { income: [], expenses: [] };
 
-    // Collect income rows
-    document.querySelectorAll("#income-rows > div").forEach(row => {
-      const select = row.querySelector("select");
-      const input = row.querySelector("input");
-      if (select && select.value && input && input.value.trim() !== "") {
-        data.income.push({
-          type: select.value,
-          amount: parseFloat(input.value)
-        });
-      }
-    });
+      // Collect income rows
+      document.querySelectorAll("#income-rows > div").forEach(row => {
+        const select = row.querySelector("select");
+        const input = row.querySelector("input");
+        if (select && select.value && input && input.value.trim() !== "") {
+          data.income.push({
+            type: select.value,
+            amount: parseFloat(input.value)
+          });
+        }
+      });
 
-    // Collect expense rows
-    document.querySelectorAll("#expense-rows > div").forEach(row => {
-      const select = row.querySelector("select");
-      const input = row.querySelector("input");
-      if (select && select.value && input && input.value.trim() !== "") {
-        data.expenses.push({
-          type: select.value,
-          amount: parseFloat(input.value)
-        });
-      }
-    });
+      // Collect expense rows
+      document.querySelectorAll("#expense-rows > div").forEach(row => {
+        const select = row.querySelector("select");
+        const input = row.querySelector("input");
+        if (select && select.value && input && input.value.trim() !== "") {
+          data.expenses.push({
+            type: select.value,
+            amount: parseFloat(input.value)
+          });
+        }
+      });
 
-    // Save to localStorage
-    localStorage.setItem("budgetData", JSON.stringify(data));
+      // Save to localStorage
+      localStorage.setItem("budgetData", JSON.stringify(data));
+      alert("Data saved!\n" + JSON.stringify(data, null, 2));
+    }
 
-    alert("Data saved!\n" + JSON.stringify(data, null, 2));
-  }
+    function runSimulation() {
+      const data = JSON.parse(localStorage.getItem("budgetData")) || { income: [], expenses: [] };
 
+      const totalIncome = data.income.reduce((sum, item) => sum + item.amount, 0);
+      const totalExpenses = data.expenses.reduce((sum, item) => sum + item.amount, 0);
+      const net = totalIncome - totalExpenses;
+
+      const simOutput = document.getElementById("sim-output");
+      simOutput.innerHTML = `
+        <p><strong>Total Income:</strong> $${totalIncome.toFixed(2)}</p>
+        <p><strong>Total Expenses:</strong> $${totalExpenses.toFixed(2)}</p>
+        <p><strong>Monthly Net Balance:</strong> $${net.toFixed(2)}</p>
+        <p><strong>Yearly Projection:</strong> $${(net * 12).toFixed(2)}</p>
+      `;
+    }
 
     window.onload = () => {
       showSection("home"); // Default section
@@ -126,64 +141,56 @@
 
     <!-- Income Section -->
     <section id="income" class="hidden bg-white rounded-2xl shadow-lg p-8">
-        <h3 class="text-2xl font-semibold text-blue-600 mb-4">Income</h3>
-        <p class="text-gray-700">Here you can enter your sources of income.</p>
-        <!-- Container where rows will be added -->
-        <div id="income-rows" class="space-y-2 mt-4">
-            <!-- rows to be inserted -->
-        </div>
-            <div hidden>
-                <div class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-grey-700"></div>
-                <label for="income-select" class="block text-gray-700 font-medium mb-2">Expense Type</label>
-                <select title="income-select" name="income" id="income-select" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    <option value="">-- Please Choose Income Type --</option>
-                    <option value="Salary">Salary</option>
-                    <option value="Investment">Investment</option>
-                    <option value="Benefits">Benefits</option>
-                    <option value="Misc">Misc</option>
-                </select>
-            </div>
-        <button onclick="addRow('income-rows')" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">( + ) Add Row</button>
-        <button onclick="saveAllData()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save All</button>
+      <h3 class="text-2xl font-semibold text-blue-600 mb-4">Income</h3>
+      <p class="text-gray-700">Here you can enter your sources of income.</p>
+      <div id="income-rows" class="space-y-2 mt-4"></div>
+      <div hidden>
+        <select id="income-select" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <option value="">-- Please Choose Income Type --</option>
+          <option value="Salary">Salary</option>
+          <option value="Investment">Investment</option>
+          <option value="Benefits">Benefits</option>
+          <option value="Misc">Misc</option>
+        </select>
+      </div>
+      <button onclick="addRow('income-rows')" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">( + ) Add Row</button>
+      <button onclick="saveAllData()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save All</button>
     </section>
 
     <!-- Expenses Section -->
     <section id="expenses" class="hidden bg-white rounded-2xl shadow-lg p-8">
-        <h3 class="text-2xl font-semibold text-blue-600 mb-4">Expenses</h3>
-        <p class="text-gray-700">Enter your expenses here.</p>
-        <!-- Container where rows will be added -->
-        <div id="expense-rows" class="space-y-2 mt-4">
-            <!-- rows to be inserted -->
-        </div>
-            <div class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-grey-700"></div>
-            <div hidden>
-                <label for="expense-select" class="block text-gray-700 font-medium mb-2">Expense Type</label>
-                    <select title="expense-select" name="expense" id="expense-select" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        <option value="">-- Please Choose Expense Type --</option>
-                        <option value="Taxes">Taxes</option>
-                        <option value="Food">Food</option>
-                        <option value="Phone/Cable">Phone/Cable</option>
-                        <option value="Insurance">Insurance</option>
-                        <option value="Transportation">Transportation</option>
-                        <option value="Leisure">Leisure</option>
-                    </select>
-            </div>
-            <button onclick="addRow('expense-rows')" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">( + ) Add Row</button>
-            <button onclick="saveAllData()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save All</button>
-        </div>
+      <h3 class="text-2xl font-semibold text-blue-600 mb-4">Expenses</h3>
+      <p class="text-gray-700">Enter your expenses here.</p>
+      <div id="expense-rows" class="space-y-2 mt-4"></div>
+      <div hidden>
+        <select id="expense-select" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <option value="">-- Please Choose Expense Type --</option>
+          <option value="Taxes">Taxes</option>
+          <option value="Food">Food</option>
+          <option value="Phone/Cable">Phone/Cable</option>
+          <option value="Insurance">Insurance</option>
+          <option value="Transportation">Transportation</option>
+          <option value="Leisure">Leisure</option>
+        </select>
+      </div>
+      <button onclick="addRow('expense-rows')" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">( + ) Add Row</button>
+      <button onclick="saveAllData()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save All</button>
     </section>
 
     <!-- Simulator Section -->
     <section id="simulator" class="hidden bg-white rounded-2xl shadow-lg p-8">
-        <h3 class="text-2xl font-semibold text-blue-600 mb-4">Simulator</h3>
-        <p class="text-gray-700">Here you will see a simulation of your financial progress.</p>
+      <h3 class="text-2xl font-semibold text-blue-600 mb-4">Simulator</h3>
+      <div id="sim-output" class="mt-4 text-gray-800"></div>
+      <button onclick="runSimulation()" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Run Simulation</button>
     </section>
 
     <!-- More Section -->
     <section id="more" class="hidden bg-white rounded-2xl shadow-lg p-8">
-        <h3 class="text-2xl font-semibold text-blue-600 mb-4">More</h3>
-        <p class="text-gray-700">Additional resources and info will be available here.</p>
+      <h3 class="text-2xl font-semibold text-blue-600 mb-4">More</h3>
+      <p class="text-gray-700">Additional resources and info will be available here.</p>
     </section>
   </main>
 </body>
 </html>
+
+
