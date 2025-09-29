@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Budget Simulator</title>
+  <!-- imports -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="./script.js" defer></script>
 </head>
 <body class="bg-gray-100 text-gray-900 font-sans">
   <!-- Header -->
@@ -83,6 +85,30 @@
       <h3 class="text-2xl font-semibold text-blue-600 mb-4">Simulator</h3>
       <div id="sim-output" class="mt-4 text-gray-800"></div>
       <button onclick="runSimulation()" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Run Simulation</button>
+      <div class="mt-6">
+        <canvas id="monthy_" height="100"></canvas>
+        <canvas id="yearly_" height="100"></canvas>
+        <canvas id="income_" height="100"></canvas>
+        <canvas id="expense_" height="100"></canvas>
+        <script>
+          let history = [];
+          function c_chart(id, title, type="line") {
+            let chart = new Chart(document.getElementById(id), {
+            type: type,
+            data: { labels: [], datasets: [{ label: title, data: [] }] },
+            options: { responsive: true, animation: false }
+          });
+          chart.data.labels = history.map(h => h.t);
+          chart.data.datasets[0].data = history.map(h => h.value);
+          chart.update();
+          return chart;
+          }
+          chart1 = c_chart("monthy_", "Monthly Net Income");
+          chart2 = c_chart("yearly_", "Monthly Net Income");
+          chart3 = c_chart("income_", "Monthly Net Income", "bar");
+          chart3 = c_chart("expense_", "Monthly Net Income", "bar");
+        </script>
+      </div>
     </section>
 
     <!-- More Section -->
